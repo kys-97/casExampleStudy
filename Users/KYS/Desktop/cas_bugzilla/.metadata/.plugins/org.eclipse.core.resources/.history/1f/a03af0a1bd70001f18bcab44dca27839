@@ -1,0 +1,2 @@
+cas.authn.accept.users=casuser::Mellon
+cas.serviceRegistry.initFromJson=true

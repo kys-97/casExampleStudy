@@ -1,0 +1,7 @@
+cas.authn.accept.users=casuser::Mellon
+cas.serviceRegistry.initFromJson=true
+#cas server
+cas.server.name = https://localhost:8443/cas
+cas.server.contextPath = /cas
+cas.server.loginUrl = /login
+cas.server.logoutUrl = /logout

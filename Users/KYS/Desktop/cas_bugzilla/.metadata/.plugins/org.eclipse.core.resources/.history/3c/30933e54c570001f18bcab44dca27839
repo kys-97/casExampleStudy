@@ -1,0 +1,24 @@
+package com.example.demo.controller;
+
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class SecuredController {
+	
+	private Logger logger = LoggerFactory.getLogger(SecuredController.class);
+
+    @GetMapping("/secured")
+    public String securedIndex(ModelMap modelMap) {
+
+        logger.info("/secured called");
+
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+
+        if(auth.getPrincipal() instanceof UserDetails)
+            modelMap.put("username", ((UserDetails) auth.getPrincipal()).getUsername());
+
+        return "secure/index";
+    }
+
+}

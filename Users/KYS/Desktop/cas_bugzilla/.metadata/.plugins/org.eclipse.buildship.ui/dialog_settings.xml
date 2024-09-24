@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.buildship.ui.wizard.project.creation">
+		<item key="apply_working_sets" value="false"/>
+		<item key="project_location" value="C:\Users\KYS\Desktop\cas_bugzilla\CASServer"/>
+		<item key="use_default_location" value="true"/>
+		<item key="java_home" value="C:\Java\Semeru\jdk-17.0.3.7-openj9"/>
+		<item key="auto_sync" value="false"/>
+		<list key="working_sets">
+		</list>
+		<section name="ProjectCreationWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="0"/>
+			<item key="DIALOG_Y_ORIGIN" value="0"/>
+			<item key="DIALOG_WIDTH" value="613"/>
+			<item key="DIALOG_HEIGHT" value="890"/>
+			<item key="DIALOG_FONT_NAME" value="1|맑은 고딕|9.0|0|WINDOWS|1|-15|0|0|0|400|0|0|0|1|0|0|0|0|맑은 고딕"/>
+		</section>
+	</section>
+</section>

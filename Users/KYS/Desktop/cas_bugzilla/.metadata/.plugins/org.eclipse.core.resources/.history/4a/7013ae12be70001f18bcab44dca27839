@@ -1,0 +1,57 @@
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+	
+	@Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/public/**").permitAll()
+                .anyRequest().authenticated()
+            .and()
+                .exceptionHandling()
+                    .authenticationEntryPoint(casAuthenticationEntryPoint())
+            .and()
+                .addFilterBefore(casAuthenticationFilter(), CasAuthenticationFilter.class)
+                .addFilterBefore(casAuthenticationFilter(), RequestHeaderAuthenticationFilter.class)
+            .logout()
+                .logoutSuccessUrl("/logout")
+            .and()
+                .csrf().disable();
+    }
+
+    @Bean
+    public CasAuthenticationFilter casAuthenticationFilter() throws Exception {
+        CasAuthenticationFilter casAuthenticationFilter = new CasAuthenticationFilter();
+        casAuthenticationFilter.setAuthenticationManager(authenticationManager());
+        casAuthenticationFilter.setFilterProcessesUrl("/login/cas");
+        return casAuthenticationFilter;
+    }
+
+    @Bean
+    public CasAuthenticationEntryPoint casAuthenticationEntryPoint() {
+        CasAuthenticationEntryPoint casAuthenticationEntryPoint = new CasAuthenticationEntryPoint();
+        casAuthenticationEntryPoint.setLoginUrl("http://localhost:8080/cas/login");
+        casAuthenticationEntryPoint.setServiceProperties(serviceProperties());
+        return casAuthenticationEntryPoint;
+    }
+
+    @Bean
+    public ServiceProperties serviceProperties() {
+        ServiceProperties serviceProperties = new ServiceProperties();
+        serviceProperties.setService("http://localhost:8081/callback");
+        serviceProperties.setSendRenew(false);
+        return serviceProperties;
+    }
+
+    @Bean
+    public Cas30ServiceTicketValidator cas30ServiceTicketValidator() {
+        return new Cas30ServiceTicketValidator("http://localhost:8080/cas");
+    }
+
+}

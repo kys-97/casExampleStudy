@@ -1,0 +1,22 @@
+spring.application.name=CASExample
+server.port=8900
+spring.thymeleaf.cache=false
+spring.thymeleaf.enabled=true
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+#set cas server
+spring.security.cas.client.base-url=http://localhost:8443/cas
+spring.security.cas.client.login-url=/login
+spring.security.cas.client.logout-url=/logout
+spring.security.cas.client.service-url=http://localhost:8081/callback
+spring.security.cas.client.service.id=http://localhost:8081
+# database 설정
+spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
+spring.datasource.username=postgres
+spring.datasource.password=1234
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA 설정
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect

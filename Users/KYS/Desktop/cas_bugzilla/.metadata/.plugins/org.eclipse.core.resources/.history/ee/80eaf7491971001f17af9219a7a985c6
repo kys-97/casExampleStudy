@@ -1,0 +1,109 @@
+package com.example.demo.config;
+
+import org.apereo.cas.client.session.SingleSignOutFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.cas.ServiceProperties;
+import org.springframework.security.cas.authentication.CasAuthenticationProvider;
+import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
+import org.springframework.security.cas.web.CasAuthenticationFilter;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+
+import com.example.demo.data.repository.UserRepository;
+import com.example.demo.service.CasUserDetailsService;
+
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig {
+
+    private final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
+    private final SingleSignOutFilter singleSignOutFilter;
+    private final LogoutFilter logoutFilter;
+    private final CasAuthenticationProvider casAuthenticationProvider;
+    private final ServiceProperties serviceProperties;
+    private final UserRepository userRepository;
+    private final CasUserDetailsService casUserDetailsService;
+
+    @Autowired
+    public WebSecurityConfig(SingleSignOutFilter singleSignOutFilter, 
+                             LogoutFilter logoutFilter,
+                             CasAuthenticationProvider casAuthenticationProvider,
+                             ServiceProperties serviceProperties,
+                             UserRepository userRepository) {
+        this.singleSignOutFilter = singleSignOutFilter;
+        this.logoutFilter = logoutFilter;
+        this.casAuthenticationProvider = casAuthenticationProvider;
+        this.serviceProperties = serviceProperties;
+        this.userRepository = userRepository;
+        this.casUserDetailsService = new CasUserDetailsService(userRepository);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .requestMatchers("/secured").authenticated()  // 보호된 페이지
+                .requestMatchers("/login", "/templates").permitAll()  // 직접 만든 로그인 페이지 및 공개 페이지
+                .and()
+            .exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint())  // CAS 엔트리포인트
+                .and()
+            .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
+            .addFilterBefore(logoutFilter, LogoutFilter.class)
+            .csrf().ignoringRequestMatchers("/exit/cas")  // CSRF 예외 설정
+            .and()
+            .formLogin()  // Spring Security 폼 로그인 추가
+                .loginPage("/login")  // 직접 만든 로그인 페이지 설정
+                .permitAll()
+            .and()
+            .logout()
+                .logoutUrl("/auth/logout")  // 로그아웃 URL 설정
+                .logoutSuccessUrl("/login?logout")  // 로그아웃 성공 후 리디렉션할 URL
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll();  // 로그아웃 URL에 대한 접근 허용
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(casUserDetailsService);  // 주입된 CasUserDetailsService 사용
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Autowired
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
+    }
+
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        CasAuthenticationEntryPoint entryPoint = new CasAuthenticationEntryPoint();
+        entryPoint.setLoginUrl("https://localhost:8443/cas/login");
+        entryPoint.setServiceProperties(serviceProperties);
+        return entryPoint;
+    }
+}

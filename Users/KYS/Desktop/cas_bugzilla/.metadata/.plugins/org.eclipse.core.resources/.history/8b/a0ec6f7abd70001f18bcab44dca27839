@@ -1,0 +1,3 @@
+cas.authn.accept.users=casuser::Mellon
+cas.serviceRegistry.initFromJson=true
+cas.serviceRegistry.json.location=classpath:/etc/cas/services

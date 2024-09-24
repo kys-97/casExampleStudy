@@ -1,0 +1,51 @@
+package com.example.demo.config;
+
+@EnableWebSecurity
+public class WebSecurityConfig {
+
+    private Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
+    private SingleSignOutFilter singleSignOutFilter;
+    private LogoutFilter logoutFilter;
+    private CasAuthenticationProvider casAuthenticationProvider;
+    private ServiceProperties serviceProperties;
+
+    @Autowired
+    public WebSecurityConfig(SingleSignOutFilter singleSignOutFilter, LogoutFilter logoutFilter,
+                             CasAuthenticationProvider casAuthenticationProvider,
+                             ServiceProperties serviceProperties) {
+        this.logoutFilter = logoutFilter;
+        this.singleSignOutFilter = singleSignOutFilter;
+        this.serviceProperties = serviceProperties;
+        this.casAuthenticationProvider = casAuthenticationProvider;
+    }
+
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeRequests().antMatchers( "/secured", "/login").authenticated()
+        .and()
+        .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+        .and()
+        .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
+        .addFilterBefore(logoutFilter, LogoutFilter.class)
+        .csrf().ignoringAntMatchers("/exit/cas");
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+            .authenticationProvider(casAuthenticationProvider)
+            .build();
+    }
+
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        CasAuthenticationEntryPoint entryPoint = new CasAuthenticationEntryPoint();
+        entryPoint.setLoginUrl("https://localhost:8443/cas/login");
+        entryPoint.setServiceProperties(serviceProperties);
+        return entryPoint;
+    }
+
+
+
+}
